@@ -3,26 +3,27 @@ from flask_restful import Resource, Api
 import json, re
 
 
-app = Flask(__name__)
-api = Api(app)
-
 def validation(expression):
-    
+    """Basic validation of user input"""  
+
     if isinstance(expression, str) != True:
-        raise Exception("Only strings!")
+        raise Exception("Only <string> is allowed as an input !")
     elif len(expression) == 0:
-        raise Exception("Not empty string!")
-    elif bool(re.search(r'[^0-9+-/(/)/*//]',expression)):
-        raise Exception("Without illegal characters!")
+        raise Exception("Empty string is not a valid input!")
+    elif bool(re.search(r'[^0-9+-/(/)/*//\s]',expression)):
+        raise Exception("Some of characters are invalid! Please use only numbers or '+','-','/','*','(',')'")
     else:
         pass
 
 def standardExpr(expression):
+    """Standarisation of input that add space before number or sign """
+    
     expression.replace(" ", "")
     pattern = r'([+-///*/(/)]|\d+)'
     return re.sub(pattern, r' \1', expression)
     
 def changeToPostfix(expression):
+    """Changing infix expression into postfix expression"""
     
     level = {'*': 3, '/': 3, '+': 2, '-': 2, '(': 1}
     stack = []
@@ -50,6 +51,8 @@ def changeToPostfix(expression):
 
 
 def postfixEvaluation(expression):
+    """Evaluation of postfix expression"""
+    
     stack = []
     tokenList = expression.split()
 
@@ -64,42 +67,43 @@ def postfixEvaluation(expression):
     return stack.pop()
 
 def evaluation(sign, num1, num2):
+    """Execute operation based on sign"""
+    
     if sign == "*": return num1 * num2
     elif sign == "/": return num1 / num2
     elif sign == "+": return num1 + num2
     else: return num1 - num2
 
-class Welcome(Resource):
-    def get(self):
-        return("Welcome to Parallel calculator Usage:")
-
-
 class Evaluate(Resource):
+    """Class which carry out main task of microservice"""
         
-    def get(self, num):
-        return {"result" : num*10}
-
     def post(self):
         some_json = request.get_json()
         expression = some_json['expression']
         validation(expression)
-                    
-        result = standardExpr(expression)
-        result = changeToPostfix(result)
-        result = postfixEvaluation(result)
+        
+        
+        standResult = standardExpr(expression)
+        postfixResult = changeToPostfix(standResult)
+        result = postfixEvaluation(postfixResult)
+            
         return {"result": result }
-    
-api.add_resource(Welcome, '/')
+
+app = Flask(__name__)
+api = Api(app)
+
 api.add_resource(Evaluate, '/evaluate')
 
 usage = """
 
-Wrong endpoint!
+###Usage instruction###
 
-Avaliable endpoints:
+You can curl respond only by:
 
-POST /evaluate
-GET /welcome
+POST -d '{"expression":"<expression>"}'  http://localhost:5000/evaluate
+
+Usage example:
+$ curl -H "Content-Type: application/json" -X POST -d '{"expression":"(1+1)*3-5*(4/5)"}'  http://localhost:5000/evaluate
 
 """
 
