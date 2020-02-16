@@ -23,13 +23,13 @@ $flask app.py
 
 # About usage
 
-In order to use calculator use POST method on appropriate endpoint which by default should be:
+In order to use calculator use POST method on appropriate endpoint. By default it should be:
 ```
 http://localhost:5000/evaluate
 ```
-The app allows to use only POST metod on /evaluate other endpoints or method are not allowed
+The app allows to use only POST metod on /evaluate. Other endpoints or method are not allowed!
 
-Pass in POST method appropriate field "expression" with mathematical equation (which you must pass as a string), for instance:
+To use the calculator pass in POST method appropriate arguments. Post field "expression" equal to mathematical equation you want to solve (only as a string), for instance:
 ```
 -d ' {"expression":"(1-1)*2+3*(5+4)+5/2"} '
 ```
